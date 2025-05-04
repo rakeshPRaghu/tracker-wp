@@ -1,24 +1,37 @@
 <?php
-function tracker_flow_dashboard() {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'investment_tracker';
+// Add Admin Menu
+function tracker_flow_add_admin_menu() {
 
-    $total_deposits = (float) $wpdb->get_var("SELECT COALESCE(SUM(amount), 0) FROM $table_name WHERE type = 'deposit'");
-    $total_expenses = (float) $wpdb->get_var("SELECT COALESCE(SUM(amount), 0) FROM $table_name WHERE type = 'expense'");
-    $current_balance = $total_deposits - $total_expenses;
-
-    echo "<h2>Investment Dashboard</h2>";
-    echo "<p><strong>Total Deposits:</strong> ₹" . number_format($total_deposits, 2) . "</p>";
-    echo "<p><strong>Total Expenses:</strong> ₹" . number_format($total_expenses, 2) . "</p>";
-    echo "<p><strong>Current Balance:</strong> ₹" . number_format($current_balance, 2) . "</p>";
-
-    // Breakdown by investor
-    echo "<h3>Investor Contributions</h3>";
-    $investors = get_users(['role' => 'investor']);
-    foreach ($investors as $investor) {
-        $investor_id = $investor->ID;
-        $name = $investor->display_name;
-        $investor_total = (float) $wpdb->get_var("SELECT COALESCE(SUM(amount), 0) FROM $table_name WHERE user_id = $investor_id AND type = 'deposit'");
-        echo "<p>$name: ₹" . number_format($investor_total, 2) . "</p>";
+    function tracker_flow_dashboard() {
+        ?>
+        <div class="wrap">
+            <h1>Investment Tracker Dashboard</h1>
+            <p>Welcome to the Investment Tracker plugin. Use the menu to manage deposits, expenses, and subcategories.</p>
+        </div>
+        <?php
     }
+    
+    add_menu_page(
+        'Investment Tracker', // Page title
+        'Investment Tracker', // Menu title
+        'manage_options', // Capability (Only admins can access)
+        'tracker-flow', // Menu slug
+        'tracker_flow_dashboard', // Callback function
+        'dashicons-chart-pie', // Icon
+        6 // Position in menu
+    );
+
+    // Add Subcategories Management Page
+    add_submenu_page(
+        'tracker-flow',
+        'Manage Subcategories',
+        'Subcategories',
+        'manage_options',
+        'tracker-flow-subcategories',
+        'tracker_flow_subcategories_page'
+    );
 }
+
+add_action('admin_menu', 'tracker_flow_add_admin_menu');
+
+?>
